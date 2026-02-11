@@ -317,8 +317,8 @@
 
     <main class="layout-container">
         <header>
-            <h1>Matriz de Rentabilidad v2.6</h1>
-            <p>Arquitectura de Precios & Motor de Combos (Lógica Local/Internacional)</p>
+            <h1>Matriz de Precios | Streaming Architecture</h1>
+            <p>Catálogo Oficial de Servicios</p>
         </header>
 
         <!-- 1. INVENTARIO PREMIUM -->
@@ -380,8 +380,8 @@
 
             <div class="result-bar">
                 <div>
-                    <div style="font-size:0.8em; color:var(--text-secondary); font-family:monospace;">MARGEN OBJETIVO: <span id="margin-display">--%</span></div>
-                    <div style="font-size:0.85em; color:var(--text-secondary); margin-top:0.25rem;">BASE INCLUIDA: <span id="base-includes" style="color:white; font-weight:600;">--</span></div>
+                    <!-- MARGEN ELIMINADO PARA CLIENTE FINAL -->
+                    <div style="font-size:0.85em; color:var(--text-secondary);">BASE INCLUIDA: <span id="base-includes" style="color:white; font-weight:600;">--</span></div>
                 </div>
                 <div class="product-price" id="total-price">$0 COP</div>
             </div>
@@ -395,43 +395,40 @@
         
         let currentIPTVCurrency = 'COP';
 
-        /* * INVENTARIO AUDITADO v2.6
-         * Se agregó propiedad localOnly: true a Mega TV y Jellyfin
-         * para ocultarlos en la vista USD.
-         */
+        /* * INVENTARIO AUDITADO v2.7 (SIN MÁRGENES VISIBLES) */
         const INVENTORY = {
             premium: [
-                { name: "Netflix Premium 4K", sub: "Cuenta Original", price: 15000, margin: "14%" },
-                { name: "Disney Premium", sub: "Incluye ESPN", price: 16000, margin: "31%" },
-                { name: "Max", sub: "Cuenta Original", price: 14000, margin: "36%" },
-                { name: "Amazon Prime Video", sub: "Sin Publicidad", price: 15000, margin: "40%" },
-                { name: "Universal+", sub: "Series NBC", price: 14000, margin: "28%" }
+                { name: "Netflix Premium 4K", sub: "Cuenta Original", price: 15000 },
+                { name: "Disney Premium", sub: "Incluye ESPN", price: 16000 },
+                { name: "Max", sub: "Cuenta Original", price: 14000 },
+                { name: "Amazon Prime Video", sub: "Sin Publicidad", price: 15000 },
+                { name: "Universal+", sub: "Series NBC", price: 14000 }
             ],
             standard: [
-                { name: "CrunchyRoll", sub: "Fan", price: 14000, margin: "43%" },
-                { name: "Paramount+", sub: "Standard", price: 14000, margin: "50%" },
-                { name: "Plex", sub: "Activación", price: 15000, margin: "53%" },
-                { name: "Disney Standard", sub: "Básico", price: 12000, margin: "25%" },
-                { name: "ViX Premium", sub: "Deportes", price: 12000, margin: "42%" }
+                { name: "CrunchyRoll", sub: "Fan", price: 14000 },
+                { name: "Paramount+", sub: "Standard", price: 14000 },
+                { name: "Plex", sub: "Activación", price: 15000 },
+                { name: "Disney Standard", sub: "Básico", price: 12000 },
+                { name: "ViX Premium", sub: "Deportes", price: 12000 }
             ],
             iptv: [
-                { name: "IPTV 1 Mes", sub: "1 Pantalla (1 Crédito)", price: 13000, priceUsd: 6.00, margin: "69%" },
-                { name: "IPTV 1 Mes", sub: "4 Dispositivos (1 Crédito)", price: 18000, priceUsd: 9.00, margin: "78%" },
-                { name: "IPTV 2 Meses", sub: "4 Dispositivos (2 Créditos)", price: 35000, priceUsd: 16.00, margin: "77%" },
+                { name: "IPTV 1 Mes", sub: "1 Pantalla", price: 13000, priceUsd: 6.00 },
+                { name: "IPTV 1 Mes", sub: "4 Dispositivos", price: 18000, priceUsd: 9.00 },
+                { name: "IPTV 2 Meses", sub: "4 Dispositivos", price: 35000, priceUsd: 16.00 },
                 // PRODUCTO ESTRELLA
-                { name: "Pack Trimestral (3x2)", sub: "4 Disp (Pague 2 Lleve 3)", price: 50000, priceUsd: 22.00, margin: "84%", featured: true },
-                { name: "IPTV 6 Meses", sub: "4 Dispositivos (5 Créditos)", price: 90000, priceUsd: 40.00, margin: "78%" },
-                { name: "IPTV 1 Año", sub: "4 Dispositivos (11 Créditos)", price: 165000, priceUsd: 70.00, margin: "73%" },
+                { name: "Pack Trimestral (3x2)", sub: "4 Disp (Pague 2 Lleve 3)", price: 50000, priceUsd: 22.00, featured: true },
+                { name: "IPTV 6 Meses", sub: "4 Dispositivos", price: 90000, priceUsd: 40.00 },
+                { name: "IPTV 1 Año", sub: "4 Dispositivos", price: 165000, priceUsd: 70.00 },
                 // LOCAL ONLY
-                { name: "Mega TV", sub: "1 Mes", price: 27000, priceUsd: 12.00, margin: "30%", localOnly: true },
-                { name: "Jellyfin", sub: "1 Mes", price: 22000, priceUsd: 10.00, margin: "32%", localOnly: true }
+                { name: "Mega TV", sub: "1 Mes", price: 27000, priceUsd: 12.00, localOnly: true },
+                { name: "Jellyfin", sub: "1 Mes", price: 22000, priceUsd: 10.00, localOnly: true }
             ],
             tools: [
-                { name: "YouTube Premium", sub: "1 Mes", price: 16000, margin: "25%" },
-                { name: "YouTube Premium", sub: "3 Meses", price: 39000, margin: "25%" },
-                { name: "Spotify Premium", sub: "3 Meses", price: 39000, margin: "25%" },
-                { name: "ChatGPT Plus", sub: "Cuenta Personal", price: 28000, margin: "28%" },
-                { name: "Canva Pro", sub: "1 Año", price: 110000, margin: "37%" }
+                { name: "YouTube Premium", sub: "1 Mes", price: 16000 },
+                { name: "YouTube Premium", sub: "3 Meses", price: 39000 },
+                { name: "Spotify Premium", sub: "3 Meses", price: 39000 },
+                { name: "ChatGPT Plus", sub: "Cuenta Personal", price: 28000 },
+                { name: "Canva Pro", sub: "1 Año", price: 110000 }
             ]
         };
 
@@ -443,10 +440,10 @@
                 note: "Selecciona adicionales distintos para completar tu combo.",
                 options: ["Max", "Amazon Prime", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
                 tiers: [ 
-                    { k: 2, label: "Solo Base (Sin Adicionales)", cost: 21000, retail: 30000 },
-                    { k: 3, label: "Tripleta (1 Adicional)", cost: 26000, retail: 37000 },
-                    { k: 4, label: "Cuadrupleta (2 Adicionales)", cost: 32000, retail: 46000 },
-                    { k: 5, label: "Quintupla (3 Adicionales)", cost: 37000, retail: 53000 }
+                    { k: 2, label: "Solo Base (Sin Adicionales)", retail: 30000 },
+                    { k: 3, label: "Tripleta (1 Adicional)", retail: 37000 },
+                    { k: 4, label: "Cuadrupleta (2 Adicionales)", retail: 46000 },
+                    { k: 5, label: "Quintupla (3 Adicionales)", retail: 53000 }
                 ]
             },
             "netflix_4k": {
@@ -455,10 +452,10 @@
                 note: "Incluye Netflix. Agrega otras plataformas distintas.",
                 options: ["Max", "Amazon Prime", "Disney Standard", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
                 tiers: [ 
-                    { k: 2, label: "Dupla (1 Adicional)", cost: 18000, retail: 26000 },
-                    { k: 3, label: "Tripleta (2 Adicionales)", cost: 23000, retail: 33000 },
-                    { k: 4, label: "Cuadrupleta (3 Adicionales)", cost: 28000, retail: 40000 },
-                    { k: 5, label: "Quintupla (4 Adicionales)", cost: 33000, retail: 47000 }
+                    { k: 2, label: "Dupla (1 Adicional)", retail: 26000 },
+                    { k: 3, label: "Tripleta (2 Adicionales)", retail: 33000 },
+                    { k: 4, label: "Cuadrupleta (3 Adicionales)", retail: 40000 },
+                    { k: 5, label: "Quintupla (4 Adicionales)", retail: 47000 }
                 ]
             },
             "disney_prem": {
@@ -467,10 +464,10 @@
                 note: "Incluye Disney+ Premium. Agrega otras plataformas distintas.",
                 options: ["Max", "Amazon Prime", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
                 tiers: [ 
-                    { k: 2, label: "Dupla (1 Adicional)", cost: 17000, retail: 25000 },
-                    { k: 3, label: "Tripleta (2 Adicionales)", cost: 21500, retail: 31000 },
-                    { k: 4, label: "Cuadrupleta (3 Adicionales)", cost: 26000, retail: 37000 },
-                    { k: 5, label: "Quintupla (4 Adicionales)", cost: 31000, retail: 45000 }
+                    { k: 2, label: "Dupla (1 Adicional)", retail: 25000 },
+                    { k: 3, label: "Tripleta (2 Adicionales)", retail: 31000 },
+                    { k: 4, label: "Cuadrupleta (3 Adicionales)", retail: 37000 },
+                    { k: 5, label: "Quintupla (4 Adicionales)", retail: 45000 }
                 ]
             },
             "flex_mix": {
@@ -479,10 +476,10 @@
                 note: "Elige plataformas distintas hasta completar el cupo.",
                 options: ["Max", "Amazon Prime", "Disney Standard", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
                 tiers: [ 
-                    { k: 2, label: "Dupla (2 Pantallas)", cost: 13000, retail: 19000 },
-                    { k: 3, label: "Tripleta (3 Pantallas)", cost: 17000, retail: 25000 },
-                    { k: 4, label: "Cuadrupleta (4 Pantallas)", cost: 20000, retail: 29000 },
-                    { k: 5, label: "Quintupla (5 Pantallas)", cost: 23000, retail: 33000 }
+                    { k: 2, label: "Dupla (2 Pantallas)", retail: 19000 },
+                    { k: 3, label: "Tripleta (3 Pantallas)", retail: 25000 },
+                    { k: 4, label: "Cuadrupleta (4 Pantallas)", retail: 29000 },
+                    { k: 5, label: "Quintupla (5 Pantallas)", retail: 33000 }
                 ]
             }
         };
@@ -521,12 +518,10 @@
                         ${item.featured ? '<span class="badge badge-star">🔥 MÁS VENDIDO</span>' : ''}
                         <div class="product-title">
                             ${item.name}
-                            ${style === 'iptv' && item.margin !== 'N/A' && !item.featured ? '<span class="badge badge-iptv" style="font-size:0.6em; margin-left:5px;">' + item.margin + '</span>' : ''}
                         </div>
                         <span class="product-subtitle">${item.sub}</span>
                     </div>
                     <div style="margin-top:auto;">
-                        <span style="font-size:0.7em; color:#64748b;">${item.margin !== 'N/A' && style !== 'iptv' ? 'Margen: ' + item.margin : ''}</span>
                         <div class="product-price">${displayFormatter.format(displayPrice)}</div>
                     </div>
                 </article>
@@ -622,9 +617,7 @@
             document.getElementById('count-max').textContent = maxAdicionales;
             document.getElementById('total-price').textContent = FORMATTER_COP.format(tier.retail);
             
-            const margin = ((tier.retail - tier.cost) / tier.retail * 100).toFixed(0);
-            document.getElementById('margin-display').textContent = `${margin}%`;
-            document.getElementById('margin-display').style.color = margin < 20 ? 'var(--accent-warning)' : 'var(--accent-success)';
+            // Lógica de margen eliminada de la vista
 
             checkboxes.forEach(cb => {
                 if(!cb.checked) {
