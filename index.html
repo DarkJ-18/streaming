@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Streaming | Catálogo & Pedidos</title>
-    <!-- Font Awesome para iconos -->
+    <!-- Font Awesome para iconos vectoriales (Estabilidad Cross-Platform) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ========================================
@@ -187,6 +187,13 @@
             font-size: 0.85em;
             font-weight: 600;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .currency-btn i {
+            font-size: 1.1em;
         }
 
         .currency-btn.active {
@@ -565,13 +572,17 @@
         <h2 class="section-title">Plataformas Estándar</h2>
         <section class="grid-matrix" id="standard-grid"></section>
         
-        <!-- 3. SECCIÓN IPTV (CON SWITCH DE MONEDA) -->
+        <!-- 3. SECCIÓN IPTV (CON SWITCH DE MONEDA REPARADO) -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
             <h2 class="section-title" style="color: var(--accent-purple); margin: 0; border: none;">Televisión Digital (IPTV)</h2>
             
             <div class="currency-control">
-                <button class="currency-btn active" id="btn-cop" onclick="setIPTVCurrency('COP')">🇨🇴 COP</button>
-                <button class="currency-btn" id="btn-usd" onclick="setIPTVCurrency('USD')">🇺🇸 USD</button>
+                <button class="currency-btn active" id="btn-cop" onclick="setIPTVCurrency('COP')">
+                    <i class="fas fa-coins"></i> COP
+                </button>
+                <button class="currency-btn" id="btn-usd" onclick="setIPTVCurrency('USD')">
+                    <i class="fas fa-dollar-sign"></i> USD
+                </button>
             </div>
         </div>
         
@@ -784,6 +795,12 @@
 
         function addToCart(item, type = 'single') {
             try {
+                // Validación de Moneda Mixta
+                if (cart.length > 0 && cart[0].currency !== item.currency) {
+                    showToast(`No puedes mezclar monedas (${cart[0].currency} y ${item.currency}). Finaliza tu pedido actual o vacía el carrito.`, 'error');
+                    return;
+                }
+
                 // Clonar item para evitar referencias
                 const cartItem = {
                     id: Date.now(), // ID único para el carrito
@@ -806,6 +823,12 @@
 
         function addComboToCart() {
             try {
+                // Validación de Moneda Mixta (Combos son siempre COP)
+                if (cart.length > 0 && cart[0].currency !== 'COP') {
+                    showToast("No puedes mezclar Combos (COP) con productos en USD. Finaliza tu pedido actual o vacía el carrito.", "error");
+                    return;
+                }
+
                 // Extraer estado actual del combo
                 const config = COMBO_SYSTEM[currentComboKey];
                 const tierInput = document.querySelector('input[name="tier"]:checked');
@@ -820,14 +843,6 @@
                 // Obtener opciones seleccionadas
                 const checkboxes = document.querySelectorAll('input[name="opt"]:checked');
                 const selectedOpts = Array.from(checkboxes).map(cb => cb.value);
-                
-                // Validación básica opcional (se puede remover si quieres flexibilidad total)
-                /*
-                if (currentComboKey === 'flex_mix' && selectedOpts.length === 0) {
-                    showToast("Selecciona al menos una plataforma.", "error");
-                    return;
-                }
-                */
                 
                 const cartItem = {
                     id: Date.now(),
@@ -895,11 +910,10 @@
 
             container.innerHTML = html;
 
-            // 3. Totales (Manejo híbrido)
+            // 3. Totales (Moneda Única Garantizada)
             let totalText = '';
-            if (totalCOP > 0) totalText += FORMATTER_COP.format(totalCOP);
-            if (totalCOP > 0 && totalUSD > 0) totalText += ' + ';
-            if (totalUSD > 0) totalText += FORMATTER_USD.format(totalUSD);
+            if (totalCOP > 0) totalText = FORMATTER_COP.format(totalCOP);
+            else if (totalUSD > 0) totalText = FORMATTER_USD.format(totalUSD);
             
             document.getElementById('cart-total-display').textContent = totalText;
         }
@@ -923,7 +937,7 @@
                 message += `%0A*TOTAL ESTIMADO: ${total}*`;
                 
                 // Reemplaza XXXXXXXXXX con tu número real
-                window.open(`https://wa.me/573000000000?text=${message}`, '_blank');
+                window.open(`https://wa.me/573132973032?text=${message}`, '_blank');
             } catch (error) {
                 console.error("Error checkout:", error);
                 showToast("Error al generar enlace de WhatsApp", "error");
@@ -964,13 +978,28 @@
                     currency: currencyCode
                 }).replace(/"/g, "&quot;");
 
+                // Sustitución de emojis por iconos FontAwesome en los badges
+                let badgeHtml = '';
+                if(item.featured) {
+                    badgeHtml = '<span class="badge badge-star"><i class="fas fa-fire"></i> MÁS VENDIDO</span>';
+                }
+                
+                let iptvExtraBadge = '';
+                if(style === 'iptv' && item.margin !== 'N/A' && !item.featured) {
+                    // Nota: 'item.margin' es texto, lo dejamos como está, pero reemplazamos el emoji de fuego en el JS anterior si existía
+                    iptvExtraBadge = '<span class="badge badge-iptv" style="font-size:0.6em; margin-left:5px;"><i class="fas fa-fire"></i></span>';
+                } else if(style === 'iptv' && item.featured) {
+                     // Caso especial si se requiere badge estrella
+                     // ya cubierto arriba
+                }
+
                 return `
                 <article class="card-product ${isIptvSection ? 'iptv-card' : ''} ${item.featured ? 'featured-card' : ''}">
                     <div class="card-header">
-                        ${item.featured ? '<span class="badge badge-star">🔥 MÁS VENDIDO</span>' : ''}
+                        ${badgeHtml}
                         <div class="product-title">
                             ${item.name}
-                            ${style === 'iptv' && item.margin !== 'N/A' && !item.featured ? '<span class="badge badge-iptv" style="font-size:0.6em; margin-left:5px;">⭐</span>' : ''}
+                            ${iptvExtraBadge}
                         </div>
                         <span class="product-subtitle">${item.sub}</span>
                     </div>
