@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Streaming | Catálogo & Pedidos</title>
+    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ========================================
@@ -24,6 +25,9 @@
             --accent-gold: #fbbf24; 
             --border-subtle: rgba(255, 255, 255, 0.08);
             
+            --space-s: clamp(0.75rem, 0.5rem + 0.5vw, 1rem);
+            --space-m: clamp(1.5rem, 1rem + 1vw, 2.5rem);
+            
             --font-body: clamp(1rem, 0.9rem + 0.3vw, 1.125rem);
             --radius-std: 0.75rem;
         }
@@ -36,20 +40,20 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             font-size: var(--font-body);
             line-height: 1.6;
-            padding-bottom: 100px;
+            padding-bottom: 100px; /* Espacio para scroll final */
         }
 
         .layout-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: var(--space-m);
         }
 
         header {
             text-align: center;
             border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 2rem;
-            margin-bottom: 2rem;
+            padding-bottom: var(--space-m);
+            margin-bottom: var(--space-m);
         }
 
         h1 {
@@ -124,7 +128,19 @@
             text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
         }
 
-        /* NOTAS DE DISPONIBILIDAD (NUEVO) */
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.2em 0.5em;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            text-transform: uppercase;
+            margin-left: 0.5em;
+        }
+        .badge-iptv { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .badge-star { background: var(--accent-gold); color: #000; font-weight: 800; margin-bottom: 0.5rem; display: inline-block; margin-left: 0; }
+
+        /* NOTAS DE DISPONIBILIDAD */
         .product-note {
             font-size: 0.75rem;
             color: var(--accent-warning);
@@ -142,18 +158,7 @@
             background: rgba(16, 185, 129, 0.1);
         }
 
-        .badge {
-            font-size: 0.7rem;
-            padding: 0.2em 0.5em;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.1);
-            color: var(--text-primary);
-            text-transform: uppercase;
-            margin-left: 0.5em;
-        }
-        .badge-iptv { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-        .badge-star { background: var(--accent-gold); color: #000; font-weight: 800; margin-bottom: 0.5rem; display: inline-block; margin-left: 0; }
-
+        /* BOTÓN AGREGAR (En Tarjetas) */
         .btn-add-cart {
             margin-top: 1rem;
             width: 100%;
@@ -906,40 +911,43 @@
                 const currency = cart[0].currency;
                 const formatter = currency === 'USD' ? FORMATTER_USD : FORMATTER_COP;
 
-                let rawMessage = "🟢 *NUEVA SOLICITUD DE PEDIDO* 🟢\n";
+                // EMOJIS SEGUROS (Unicode)
+                const eCircle = "\uD83D\uDFE2"; // 🟢
+                const eMoney = "\uD83D\uDCB0";  // 💰
+                const eInfo = "\u2139\uFE0F";   // ℹ️
+                const eLock = "\uD83D\uDD12";   // 🔒
+
+                let rawMessage = `${eCircle} *NUEVA SOLICITUD DE PEDIDO* ${eCircle}\n`;
                 rawMessage += "-----------------------------------\n";
                 
                 cart.forEach((item, index) => {
                     rawMessage += `*${index + 1}. ${item.name}*\n`;
-                    rawMessage += `   💰 Precio Lista: ${formatter.format(item.price)}\n`;
-                    if(item.details) rawMessage += `   ℹ️ Detalles: _${item.details}_\n`;
+                    rawMessage += `   ${eMoney} Precio Lista: ${formatter.format(item.price)}\n`;
+                    if(item.details) rawMessage += `   ${eInfo} Detalles: _${item.details}_\n`;
                     rawMessage += `\n`;
                 });
 
                 rawMessage += "-----------------------------------\n";
                 rawMessage += `*TOTAL A PAGAR (Sugerido): ${formatter.format(totalValue)}*\n\n`;
                 
-                // CODIFICACIÓN TÁCTICA (Sutil)
-                // TX-[HORA]-[VALOR][DIVISA]
+                // CODIFICACIÓN TÁCTICA
                 const now = new Date();
-                const timeCode = now.getHours().toString().padStart(2,'0') + now.getMinutes().toString().padStart(2,'0'); // HHMM
+                const timeCode = now.getHours().toString().padStart(2,'0') + now.getMinutes().toString().padStart(2,'0'); 
                 
                 let priceCode = '';
                 let currencyCode = '';
 
                 if (currency === 'COP') {
-                    // Dividir por 1000 (Ej: 50000 -> 050)
                     priceCode = Math.floor(totalValue / 1000).toString().padStart(3, '0');
                     currencyCode = 'C';
                 } else {
-                    // Entero (Ej: 22.00 -> 022)
                     priceCode = Math.floor(totalValue).toString().padStart(3, '0');
                     currencyCode = 'U';
                 }
 
                 const smartRef = `TX-${timeCode}-${priceCode}${currencyCode}`;
                 
-                rawMessage += `🔒 _Ref. Transacción: ${smartRef}_`;
+                rawMessage += `${eLock} _Ref. Transacción: ${smartRef}_`;
 
                 const encodedPayload = encodeURIComponent(rawMessage);
                 const TARGET_PHONE = "573132973032"; 
