@@ -911,19 +911,13 @@
                 const currency = cart[0].currency;
                 const formatter = currency === 'USD' ? FORMATTER_USD : FORMATTER_COP;
 
-                // EMOJIS SEGUROS (Unicode)
-                const eCircle = "\uD83D\uDFE2"; // 🟢
-                const eMoney = "\uD83D\uDCB0";  // 💰
-                const eInfo = "\u2139\uFE0F";   // ℹ️
-                const eLock = "\uD83D\uDD12";   // 🔒
-
-                let rawMessage = `${eCircle} *NUEVA SOLICITUD DE PEDIDO* ${eCircle}\n`;
+                let rawMessage = "*NUEVA SOLICITUD DE PEDIDO*\n";
                 rawMessage += "-----------------------------------\n";
                 
                 cart.forEach((item, index) => {
                     rawMessage += `*${index + 1}. ${item.name}*\n`;
-                    rawMessage += `   ${eMoney} Precio Lista: ${formatter.format(item.price)}\n`;
-                    if(item.details) rawMessage += `   ${eInfo} Detalles: _${item.details}_\n`;
+                    rawMessage += `   Precio Lista: ${formatter.format(item.price)}\n`;
+                    if(item.details) rawMessage += `   Detalles: _${item.details}_\n`;
                     rawMessage += `\n`;
                 });
 
@@ -947,7 +941,7 @@
 
                 const smartRef = `TX-${timeCode}-${priceCode}${currencyCode}`;
                 
-                rawMessage += `${eLock} _Ref. Transacción: ${smartRef}_`;
+                rawMessage += `_Ref. Transacción: ${smartRef}_`;
 
                 const encodedPayload = encodeURIComponent(rawMessage);
                 const TARGET_PHONE = "573132973032"; 
