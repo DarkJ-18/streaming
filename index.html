@@ -713,6 +713,7 @@
                 { id: "jelly", name: "Jellyfin", sub: "1 Mes", price: 22000, priceUsd: 10.00, localOnly: true, note: "Consultar disponibilidad" }
             ],
             tools: [
+                { id: "cap", name: "CapCut Pro PC/Mobile", sub: "1 mes", price: 26000, priceUsd: 9.00 },
                 { id: "yt1", name: "YouTube Premium", sub: "1 Mes", price: 16000 },
                 { id: "yt3", name: "YouTube Premium", sub: "3 Meses", price: 39000, note: "Sujeto a disponibilidad (o entrega mes a mes)" },
                 { id: "spo", name: "Spotify Premium", sub: "3 Meses", price: 39000, note: "Sujeto a disponibilidad" },
@@ -911,6 +912,7 @@
                 const currency = cart[0].currency;
                 const formatter = currency === 'USD' ? FORMATTER_USD : FORMATTER_COP;
 
+                // FORMATO TEXTO PLANO (Cero Emojis Unicode)
                 let rawMessage = "*NUEVA SOLICITUD DE PEDIDO*\n";
                 rawMessage += "-----------------------------------\n";
                 
