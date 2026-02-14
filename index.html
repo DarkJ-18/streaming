@@ -536,8 +536,9 @@
         const FORMATTER_USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
         let currentCurrency = 'COP'; let cart = []; let currentComboPrice = 0;
 
-        // --- WEBHOOK N8N (CONECTADO) ---
-        const N8N_WEBHOOK_URL = "https://darkj26.app.n8n.cloud/webhook-test/nexus-chat"; 
+        // --- WEBHOOK N8N (PRODUCCIÓN) ---
+        // Se eliminó "-test" de la URL. Asegúrate de activar el flujo en N8n y habilitar CORS ('*').
+        const N8N_WEBHOOK_URL = "https://darkj26.app.n8n.cloud/webhook/nexus-chat"; 
 
         // --- INVENTARIO (DATA) ---
         const INVENTORY = {
@@ -602,34 +603,38 @@
             messagesArea.scrollTop = messagesArea.scrollHeight;
 
             try {
-                // 3. Enviar a N8n con CONTEXTO (Estructura corregida)
+                // 3. Enviar a N8n con CONTEXTO
                 const response = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: message,
                         sessionId: chatSessionId,
-                        // Enviamos 'context' como pide tu configuración de N8n
                         context: {
-                            currency: currentCurrency, // "COP" o "USD" según el botón activo
+                            currency: currentCurrency,
                             page: window.location.href
                         }
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
                 const data = await response.json();
                 
-                // 4. Mostrar Respuesta (Buscando 'reply' o 'output' por seguridad)
+                // 4. Mostrar Respuesta
                 document.getElementById('typing-indicator').style.display = 'none';
-                const botReply = data.reply || data.output || "Lo siento, no pude procesar la respuesta.";
+                // Soporte para respuestas simples o anidadas de N8n
+                const botReply = data.reply || data.output || data.text || "Lo siento, no pude procesar la respuesta.";
                 appendMessage(botReply, 'bot');
 
             } catch (error) {
                 console.error("Error conectando con Nexus:", error);
                 document.getElementById('typing-indicator').style.display = 'none';
                 
-                // Mensaje de fallback amigable si falla la conexión
-                appendMessage("⚠️ Error de conexión con el servidor. Por favor intenta de nuevo en unos segundos.", 'bot');
+                // Mensaje amigable al usuario
+                appendMessage("⚠️ Nexus está durmiendo. Por favor verifica que el flujo en N8n esté ACTIVO y con CORS habilitado.", 'bot');
             }
         }
 
