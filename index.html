@@ -341,6 +341,7 @@
         }
         .toast.success { border-left: 4px solid var(--accent-success); } .toast.success i { color: var(--accent-success); }
         .toast.error { border-left: 4px solid var(--accent-danger); } .toast.error i { color: var(--accent-danger); }
+        .toast.info { border-left: 4px solid var(--accent-primary); } .toast.info i { color: var(--accent-primary); }
         @keyframes toastUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* ============================
@@ -535,7 +536,7 @@
         const FORMATTER_USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
         let currentCurrency = 'COP'; let cart = []; let currentComboPrice = 0;
 
-        // --- WEBHOOK N8N (Configura tu URL aquí) ---
+        // --- WEBHOOK N8N (CONECTADO) ---
         const N8N_WEBHOOK_URL = "https://darkj26.app.n8n.cloud/webhook-test/nexus-chat"; 
 
         // --- INVENTARIO (DATA) ---
@@ -557,7 +558,7 @@
             ],
             iptv: [
                 { id: "ip1m1", name: "IPTV 1 Mes", sub: "1 Pantalla", price: 13000, priceUsd: 6.00, note: "Pide tu prueba gratis", promo: true },
-                { id: "ip1m4", name: "IPTV 1 Mes", sub: "4 Dispositivos", price: 18000, priceUsd: 9.00 },
+                { id: "ip1m4", name: "IPTV 1 Mes", sub: "4 Dispositivos", price: 18000, priceUsd: 10.00 },
                 { id: "ip2m4", name: "IPTV 2 Meses", sub: "4 Dispositivos", price: 35000, priceUsd: 16.00 },
                 { id: "ip3m4", name: "Pack Trimestral (3x2)", sub: "4 Disp (Pague 2 Lleve 3)", price: 50000, priceUsd: 22.00, featured: true },
                 { id: "ip6m4", name: "IPTV 6 Meses", sub: "4 Dispositivos", price: 90000, priceUsd: 40.00 },
@@ -601,33 +602,34 @@
             messagesArea.scrollTop = messagesArea.scrollHeight;
 
             try {
-                // 3. Enviar a N8n con METADATA DE CONTEXTO
+                // 3. Enviar a N8n con CONTEXTO (Estructura corregida)
                 const response = await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: message,
                         sessionId: chatSessionId,
-                        metadata: {
-                            url: window.location.href,
-                            currency: currentCurrency // ¡Aquí viaja el contexto!
+                        // Enviamos 'context' como pide tu configuración de N8n
+                        context: {
+                            currency: currentCurrency, // "COP" o "USD" según el botón activo
+                            page: window.location.href
                         }
                     })
                 });
 
                 const data = await response.json();
                 
-                // 4. Mostrar Respuesta
+                // 4. Mostrar Respuesta (Buscando 'reply' o 'output' por seguridad)
                 document.getElementById('typing-indicator').style.display = 'none';
-                appendMessage(data.output || "Lo siento, tuve un error de conexión.", 'bot');
+                const botReply = data.reply || data.output || "Lo siento, no pude procesar la respuesta.";
+                appendMessage(botReply, 'bot');
 
             } catch (error) {
-                console.error(error);
+                console.error("Error conectando con Nexus:", error);
                 document.getElementById('typing-indicator').style.display = 'none';
-                // Respuesta simulada si no hay webhook real
-                setTimeout(() => {
-                    appendMessage("Estoy en modo demostración. Configura mi Webhook en el código para conectarme a tu cerebro. 🧠", 'bot');
-                }, 1000);
+                
+                // Mensaje de fallback amigable si falla la conexión
+                appendMessage("⚠️ Error de conexión con el servidor. Por favor intenta de nuevo en unos segundos.", 'bot');
             }
         }
 
@@ -759,9 +761,10 @@
             
             // CODIGO TACTICO
             const now = new Date();
-            const time = now.getHours().toString().padStart(2,'0') + now.getMinutes().toString().padStart(2,'0');
+            const time = now.getHours().toString().padStart(2,'0') + now.getMinutes().toString().padStart(2,'0') + now.getSeconds().toString().padStart(2,'0');
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
             const val = currentCurrency === 'COP' ? Math.floor(total/1000) : Math.floor(total);
-            const ref = `TX-${time}-${val}${currentCurrency.charAt(0)}`;
+            const ref = `TX-${time}-${random}-${val}${currentCurrency.charAt(0)}`;
             msg += `\n_Ref: ${ref}_`;
 
             window.open(`https://wa.me/573148416896?text=${encodeURIComponent(msg)}`, '_blank');
@@ -771,26 +774,182 @@
         // --- COMBOS (Simplificado para integración) ---
         // (La lógica es idéntica a la anterior, solo se asegura que funcione con las nuevas clases)
         // ... (Código de Combos se mantiene igual al bloque anterior, solo asegurando variables globales)
-        const COMBO_SYSTEM = { /* ... (Tus combos definidos anteriormente) ... */ 
+        const COMBO_SYSTEM = { 
             "god_tier": {
-                label: "PACK SUPREMO",
-                tiers: [{k:2, retail:30000, retailUsd:20}, {k:3, retail:37000, retailUsd:25}, {k:4, retail:46000, retailUsd:30}, {k:5, retail:53000, retailUsd:35}],
-                options: ["Max", "Amazon", "Universal+", "IPTV", "ViX", "Plex", "Crunchy", "Paramount"]
+                label: "PACK SUPREMO (NFLX + DISNEY)",
+                includes: "Netflix 4K + Disney Premium",
+                note: "Selecciona adicionales distintos.",
+                options: ["Max", "Amazon Prime", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
+                tiers: [ 
+                    { k: 2, label: "Solo Base", retail: 30000, retailUsd: 20.00 },
+                    { k: 3, label: "Tripleta (+1 Adicional)", retail: 37000, retailUsd: 25.00 },
+                    { k: 4, label: "Cuadrupleta (+2 Adicionales)", retail: 46000, retailUsd: 30.00 },
+                    { k: 5, label: "Quintupla (+3 Adicionales)", retail: 53000, retailUsd: 35.00 }
+                ]
+            },
+            "netflix_4k": {
+                label: "COMBO NETFLIX 4K",
+                includes: "Netflix 4K",
+                note: "Incluye Netflix. Agrega otras apps.",
+                options: ["Max", "Amazon Prime", "Disney Standard", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
+                tiers: [ 
+                    { k: 2, label: "Dupla (+1 Adicional)", retail: 26000, retailUsd: 16.00 },
+                    { k: 3, label: "Tripleta (+2 Adicionales)", retail: 33000, retailUsd: 22.00 },
+                    { k: 4, label: "Cuadrupleta (+3 Adicionales)", retail: 40000, retailUsd: 28.00 },
+                    { k: 5, label: "Quintupla (+4 Adicionales)", retail: 47000, retailUsd: 32.00 }
+                ]
+            },
+            "disney_prem": {
+                label: "COMBO DISNEY PREMIUM",
+                includes: "Disney Premium (ESPN)",
+                note: "Incluye Disney+. Agrega otras apps.",
+                options: ["Max", "Amazon Prime", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
+                tiers: [ 
+                    { k: 2, label: "Dupla (+1 Adicional)", retail: 25000, retailUsd: 15.00 },
+                    { k: 3, label: "Tripleta (+2 Adicionales)", retail: 31000, retailUsd: 20.00 },
+                    { k: 4, label: "Cuadrupleta (+3 Adicionales)", retail: 37000, retailUsd: 25.00 },
+                    { k: 5, label: "Quintupla (+4 Adicionales)", retail: 45000, retailUsd: 30.00 }
+                ]
+            },
+            "flex_mix": {
+                label: "COMBOS VARIOS",
+                includes: "Selección Libre",
+                note: "Elige plataformas distintas.",
+                options: ["Max", "Amazon Prime", "Disney Standard", "Universal+", "IPTV", "ViX", "Plex", "CrunchyRoll", "Paramount"],
+                tiers: [ 
+                    { k: 2, label: "Dupla (2 Pantallas)", retail: 19000, retailUsd: 12.00 },
+                    { k: 3, label: "Tripleta (3 Pantallas)", retail: 25000, retailUsd: 16.00 },
+                    { k: 4, label: "Cuadrupleta (4 Pantallas)", retail: 29000, retailUsd: 20.00 },
+                    { k: 5, label: "Quintupla (5 Pantallas)", retail: 33000, retailUsd: 24.00 }
+                ]
             }
-            // Agrega el resto de tus combos aquí si faltan en la copia
         };
         // Nota: Asegúrate de incluir todo el objeto COMBO_SYSTEM del paso anterior aquí.
         
         let currentComboKey = "god_tier";
-        // Funciones stub para que no rompa si no se usa el combo builder completo en este snippet
-        function initCombos() { /* Lógica de combos completa va aquí */ }
-        function calcCombo() { /* Lógica de combos completa va aquí */ }
-        function addComboToCart() { /* ... */ }
+        function initCombos() {
+            const selectorContainer = document.getElementById('base-selector');
+            Object.keys(COMBO_SYSTEM).forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = `selector-btn ${key === currentComboKey ? 'active' : ''}`;
+                btn.textContent = COMBO_SYSTEM[key].label;
+                btn.onclick = () => switchComboBase(key);
+                selectorContainer.appendChild(btn);
+            });
+            updateComboUI();
+        }
+        function switchComboBase(key) {
+            currentComboKey = key;
+            document.querySelectorAll('input[name="opt"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.selector-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === COMBO_SYSTEM[key].label));
+            updateComboUI();
+        }
+        function updateComboUI() {
+            const config = COMBO_SYSTEM[currentComboKey];
+            const sizeContainer = document.getElementById('size-options');
+            const optContainer = document.getElementById('platform-options');
+            const existingTier = document.querySelector('input[name="tier"]:checked');
+            const selectedIdx = existingTier ? existingTier.value : 0;
+
+            sizeContainer.innerHTML = config.tiers.map((tier, idx) => {
+                let displayTierPrice;
+                if (currentCurrency === 'USD') {
+                    let dynUsd = Math.ceil((tier.retail / tasaDolarActual) * FACTOR_USD);
+                    displayTierPrice = tier.retailUsd ? Math.max(tier.retailUsd, dynUsd) : dynUsd;
+                } else {
+                    displayTierPrice = tier.retail;
+                }
+                let formatter = currentCurrency === 'USD' ? FORMATTER_USD : FORMATTER_COP;
+                return `
+                <label>
+                    <input type="radio" name="tier" value="${idx}" class="input-hidden" ${idx == selectedIdx ? 'checked' : ''} onchange="calcCombo()">
+                    <div class="tier-row">
+                        <span style="font-weight:600;">${tier.label}</span>
+                        <span style="font-family:var(--font-display); font-weight:800; color:var(--accent-success);">${formatter.format(displayTierPrice)}</span>
+                    </div>
+                </label>`
+            }).join('');
+
+            const currentlyChecked = Array.from(document.querySelectorAll('input[name="opt"]:checked')).map(cb => cb.value);
+            optContainer.innerHTML = config.options.map(opt => `
+                <label>
+                    <input type="checkbox" name="opt" value="${opt}" class="input-hidden" ${currentlyChecked.includes(opt) ? 'checked' : ''} onchange="calcCombo()">
+                    <span class="check-btn">${opt}</span>
+                </label>`).join('');
+
+            document.getElementById('base-includes').textContent = config.includes;
+            document.getElementById('combo-note').textContent = config.note;
+            calcCombo();
+        }
+        function calcCombo() {
+            const config = COMBO_SYSTEM[currentComboKey];
+            const tierInput = document.querySelector('input[name="tier"]:checked');
+            if(!tierInput) return;
+            const tier = config.tiers[tierInput.value];
+            let baseCount = 1;
+            if (currentComboKey === 'god_tier') baseCount = 2;
+            if (currentComboKey === 'flex_mix') baseCount = 0;
+            const maxAdicionales = tier.k - baseCount;
+            const checkboxes = document.querySelectorAll('input[name="opt"]');
+            const checked = Array.from(checkboxes).filter(c => c.checked);
+            
+            document.getElementById('count-current').textContent = checked.length;
+            document.getElementById('count-max').textContent = maxAdicionales;
+            
+            if (currentCurrency === 'USD') {
+                let dynUsd = Math.ceil((tier.retail / tasaDolarActual) * FACTOR_USD);
+                currentComboPrice = tier.retailUsd ? Math.max(tier.retailUsd, dynUsd) : dynUsd;
+            } else {
+                currentComboPrice = tier.retail;
+            }
+
+            let formatter = currentCurrency === 'USD' ? FORMATTER_USD : FORMATTER_COP;
+            document.getElementById('total-price').textContent = formatter.format(currentComboPrice);
+            checkboxes.forEach(cb => {
+                if(!cb.checked) cb.disabled = checked.length >= maxAdicionales;
+                else cb.disabled = false;
+            });
+        }
+        
+        function addComboToCart() {
+            try {
+                if (cart.length > 0 && cart[0].currency !== currentCurrency) {
+                    showToast(`Por favor vacía tu carrito actual primero.`, 'error');
+                    return;
+                }
+
+                const config = COMBO_SYSTEM[currentComboKey];
+                const tierInput = document.querySelector('input[name="tier"]:checked');
+                
+                if(!tierInput) {
+                    showToast("Selecciona un tamaño para el combo.", "warning");
+                    return;
+                }
+                
+                const tier = config.tiers[tierInput.value];
+                const checkboxes = document.querySelectorAll('input[name="opt"]:checked');
+                const selectedOpts = Array.from(checkboxes).map(cb => cb.value);
+                
+                const cartItem = {
+                    id: Date.now(),
+                    name: config.label,
+                    details: `${tier.label} [${selectedOpts.join(', ')}]`,
+                    price: currentComboPrice,
+                    currency: currentCurrency
+                };
+
+                cart.push(cartItem);
+                updateCartUI();
+                showToast(`Combo agregado correctamente`, 'success');
+            } catch (error) {
+                console.error(error);
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', async () => {
             await cargarTasaDolar();
             renderAllGrids();
-            // initCombos(); // Descomentar cuando integres el objeto COMBO_SYSTEM completo
+            initCombos(); 
         });
 
     </script>
